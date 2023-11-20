@@ -80,7 +80,7 @@ class HowManyHitGet(Scene):
         grupo=VGroup()
         ecuacion1=MathTex("\\vec{F}= \\displaystyle \\frac{d\\vec{p}}{dt}")
         ecuacion2=MathTex("\\vec{F}= \\displaystyle \\frac{d(m\\vec{v})}{dt}")
-        ecuacion3=MathTex("\\vec{F}= \\displaystyle \\frac{dm}{dt}v+m\\frac{d v}{dt}")
+        ecuacion3=MathTex("\\vec{F}= \\displaystyle \\frac{dm}{dt}\\vect{v}+m\\frac{d\\vec{v}}{dt}")
         ecuacion4=MathTex("p=m\\vec{v}")
         grupo.add(ecuacion1,ecuacion2,ecuacion3,ecuacion4)
         grupo.next_to(box,UP, buff=.4)

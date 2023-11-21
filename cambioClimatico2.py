@@ -1,63 +1,52 @@
 from manim import *
-import itertools as it
+import itertools as it 
 import sympy as sp
-class RectangleRain(Rectangle):
-    def __init__(self, texto, **kwargs):
-        super().__init__(**kwargs)
-        self.texto=texto
-        self.width=4
-        self.height=3
-        self.add(self.titulo(),self.get_dots())
-    def titulo(self):
-        titulo=Text(self.texto).next_to(self,UP,buff=0.5)
-        return titulo
-    def get_dots(self):
-        points=np.array([
-            [
-                np.random.uniform(-self.width/2, self.width/2),
-                np.random.uniform(-self.height/2, self.height/2),
-                0
-            ] for _ in range(40)
-        ])
-        dots=VGroup(*[
-            Dot(radius=0.08).move_to(point) for point in points
-        ])
-        for dot in dots:
-            dot.set_color(RED)
-            dot.color=dot.get_color()
-            dot.center=dot.get_center()
-            dot.velocity=rotate_vector(
-                np.random.uniform(0,5)*RIGHT,
-                np.random.uniform(0,TAU)
-            )
-        # dots.move_to(self.get_center())
-        dots.add_updater(self.update_particles)
-        return dots
-    def update_particles(self,particles,dt):
-        particles[0].set_color(BLUE)
-        for p in particles:
-            dist=np.linalg.norm(p.center-particles[0].center)
-            if dist<1:
-                p.set_color(BLUE)
-            else:
-                p.set_color(RED)
-        for p1 in particles:
-            p1.center+=p1.velocity*dt
-            if(abs(p1.center[0])+0.08)>self.width/4:
-                p1.center[0]=np.sign(p1.center[0])*(self.width/4)
-                p1.velocity[0]*=-1*np.sign(p1.velocity[0])*np.sign(p1.center[0])
-            elif (abs(p1.center[1]))>self.height/4:
-                p1.center[1]=np.sign(p1.center[1])*(self.height/4)
-                p1.velocity[1]*=-1*np.sign(p1.velocity[1])*np.sign(p1.center[1])
-        for p in particles:
-            p.move_to(p.center+4*RIGHT)
-class ClimaticChangeScene(Scene):
-    configuracion={
-        'width':6,
-        'height':3,
+class Heat(Scene):
+    conf={
+        'n_part':20,
+        'config_rect':{
+            'width':6,
+            'height':4
+        },
+        'margin': .15,
     }
     def construct(self):
-        rectangulo= RectangleRain('Calor',width=4,height=3)
-        rectangulo.to_edge(LEFT)
-        self.add(rectangulo)
-        self.wait(3)
+        box=Rectangle(width=self.conf['config_rect']['width'],height=self.conf['config_rect']['height'], color=WHITE)
+        box.to_edge(LEFT)
+        signatures=np.random.choice(['a','b'],size=self.conf['n_part'])
+        ball=VGroup(*[
+            self.get_ball(box,sign) for x,sign in zip(range(self.conf['n_part']),signatures)
+        ])
+        self.add(box,ball)
+        self.wait(10)
+    def get_ball(self,box,sign):
+        speed_factor=np.random.random()
+        ball=Dot(radius=0.2,color=interpolate_color(BLUE,RED,speed_factor))
+        sign=Tex(sign)
+        sign.move_to(ball.get_center())
+        sign.set_width(ball.get_width()-0.03)
+        sign.set_color(BLACK)
+        ball.add(sign)
+        speed=2+3*speed_factor
+        direction=rotate_vector(RIGHT,TAU*np.random.random())
+        ball.velocity=speed*direction
+        x0,y0,z0=box.get_corner(DL)
+        x1,y1,z1=box.get_corner(UR)
+        ball.move_to(np.array([
+            interpolate(x0,x1,np.random.random()),
+            interpolate(y0,y1,np.random.random()),
+            0
+        ]))
+        def update(ball,dt):
+            ball.shift(ball.velocity*dt)
+            if ball.get_left()[0]<box.get_left()[0]+self.conf['margin']:
+                ball.velocity[0]=np.abs(ball.velocity[0])
+            if ball.get_right()[0]>box.get_right()[0]-self.conf['margin']:
+                ball.velocity[0]=-np.abs(ball.velocity[0])
+            if ball.get_top()[1]>box.get_top()[1]-self.conf['margin']:
+                ball.velocity[1]=-np.abs(ball.velocity[1])
+            if ball.get_bottom()[1]<box.get_bottom()[1]+self.conf['margin']:
+                ball.velocity[1]=np.abs(ball.velocity[1])
+            return ball
+        ball.add_updater(update)
+        return ball

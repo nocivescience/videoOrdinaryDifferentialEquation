@@ -1,7 +1,7 @@
 from manim import *
 import itertools as it 
 import sympy as sp
-class Heat(Scene):
+class Heat(Rectangle):
     conf={
         'n_part':20,
         'config_rect':{
@@ -10,15 +10,14 @@ class Heat(Scene):
         },
         'margin': .15,
     }
-    def construct(self):
-        box=Rectangle(width=self.conf['config_rect']['width'],height=self.conf['config_rect']['height'], color=WHITE)
-        box.to_edge(LEFT)
+    def __init__(self, **kwargs):
+        super().__init__(width=self.conf['config_rect']['width'],height=self.conf['config_rect']['height'], color=WHITE)
+        self.to_edge(LEFT)
         signatures=np.random.choice(['a','b'],size=self.conf['n_part'])
         ball=VGroup(*[
-            self.get_ball(box,sign) for x,sign in zip(range(self.conf['n_part']),signatures)
+            self.get_ball(self,sign) for x,sign in zip(range(self.conf['n_part']),signatures)
         ])
-        self.add(box,ball)
-        self.wait(10)
+        self.add(ball)
     def get_ball(self,box,sign):
         speed_factor=np.random.random()
         ball=Dot(radius=0.2,color=interpolate_color(BLUE,RED,speed_factor))
@@ -50,3 +49,8 @@ class Heat(Scene):
             return ball
         ball.add_updater(update)
         return ball
+class HeatScene(Scene):
+    def construct(self):
+        heat=Heat()
+        self.add(heat)
+        self.wait(10)
